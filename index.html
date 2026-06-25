@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grammar Mastery — Bachillerato English Prep</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- ===== App chrome ===== -->
+  <header class="topbar" id="topbar">
+    <button class="brand" data-route="home" aria-label="Home">
+      <span class="brand-mark">📘</span>
+      <span class="brand-text">Grammar Mastery</span>
+    </button>
+    <nav class="topnav">
+      <button data-route="home">Dashboard</button>
+      <button data-route="review">Spaced Review</button>
+      <button data-route="mock">Mock Exam</button>
+      <button data-route="exam" class="ghost">Print Exam ⎙</button>
+      <button id="settingsBtn" class="ghost" aria-label="Settings">⚙ AI Grading</button>
+    </nav>
+  </header>
+
+  <!-- Settings modal (API key + model) rendered/toggled by app.js -->
+  <div id="settingsModal" class="modal-backdrop" hidden></div>
+
+  <main id="app" class="app">
+    <!-- Views are rendered here by app.js -->
+  </main>
+
+  <footer class="footer">
+    <span>Built for the Centro Educativo Británico S21 first exam · all progress saved on this device</span>
+    <button id="resetBtn" class="link-danger">Reset progress</button>
+  </footer>
+
+  <!-- The printable exam paper is rendered into here and only shown when printing the exam route -->
+  <div id="printRoot" class="print-root" aria-hidden="true"></div>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
