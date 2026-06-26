@@ -111,6 +111,8 @@
       case "home": return renderHome();
       case "topic": return renderTopic(arg);
       case "session": return renderSession(arg); // arg = topic id, or "mock"
+      case "cheatsheet": return renderCheatsheet();
+      case "flashcards": return renderFlashcards();
       case "review": return renderReview();
       case "mock": return renderMockIntro();
       case "exam": return renderExamConfig();
@@ -720,6 +722,139 @@
       [a[i], a[j]] = [a[j], a[i]];
     }
     return a;
+  }
+
+  /* ===========================================================================
+     CORE RULES — the cheat-sheet. Renders FORM_JOBS grouped, as the study spine.
+     =========================================================================== */
+  function renderCheatsheet() {
+    app.innerHTML = "";
+    app.appendChild(el("section", { class: "hero" },
+      el("h1", {}, "Core Rules — the spine of the whole exam"),
+      el("p", { class: "lead" },
+        "Every long analysis answer is built from these few form→job one-liners. You don’t memorise paragraphs — you memorise what each form ", el("i", {}, "does"),
+        ", then unfold it with the method (Name → Why → Evidence → Contrast). Learn this page cold and you can analyse almost anything.")
+    ));
+
+    // group in encounter order
+    const groups = [];
+    FORM_JOBS.forEach((f) => {
+      let g = groups.find((x) => x.name === f.group);
+      if (!g) { g = { name: f.group, items: [] }; groups.push(g); }
+      g.items.push(f);
+    });
+
+    groups.forEach((g) => {
+      app.appendChild(el("h2", { class: "section-title" }, g.name));
+      const wrap = el("div", { class: "cs-list" });
+      g.items.forEach((f) => {
+        wrap.appendChild(el("div", { class: "cs-item" },
+          el("div", { class: "cs-form" }, f.form),
+          el("div", { class: "cs-job" }, f.job),
+          f.note ? el("div", { class: "cs-note" }, f.note) : null));
+      });
+      app.appendChild(wrap);
+    });
+
+    app.appendChild(el("div", { class: "btn-row" },
+      el("button", { class: "btn", onclick: () => (location.hash = "#/flashcards") },
+        "Drill these with flashcards →")));
+  }
+
+  /* ===========================================================================
+     FLASHCARDS — recall the JOB from the FORM. Self-rated; weak cards resurface.
+
+     Uses a tiny separate spaced box per card id (fc_<i>) in localStorage so it
+     doesn't disturb the exercise spaced-repetition state.
+     =========================================================================== */
+  const FC_STORE = "grammar-mastery-fc-v1";
+  function loadFC() { try { return JSON.parse(localStorage.getItem(FC_STORE)) || {}; } catch { return {}; } }
+  function saveFC(s) { localStorage.setItem(FC_STORE, JSON.stringify(s)); }
+
+  let fcDeck = null; // current shuffled order of indices
+  function renderFlashcards() {
+    app.innerHTML = "";
+    app.appendChild(el("section", { class: "hero" },
+      el("h1", {}, "Flashcards"),
+      el("p", { class: "lead" },
+        "See a form, recall its ", el("i", {}, "job"), " out loud, then flip. Rate yourself honestly — cards you miss come back sooner. This is how you make the core automatic.")
+    ));
+
+    const fc = loadFC();
+    // weakest-first: lower box first; unseen count as box -1 (soonest)
+    const order = FORM_JOBS.map((_, i) => i).sort((a, b) =>
+      ((fc[a]?.box ?? -1) - (fc[b]?.box ?? -1)));
+    fcDeck = order;
+
+    app.appendChild(el("div", { class: "btn-row", style: "margin-top:0" },
+      el("button", { class: "btn", onclick: () => runFlashcards(0) }, "Start drill →"),
+      el("button", { class: "btn ghost", onclick: () => (location.hash = "#/cheatsheet") }, "Read the rules first")));
+  }
+
+  function runFlashcards(pos) {
+    if (!fcDeck) return renderFlashcards();
+    if (pos >= fcDeck.length) return finishFlashcards();
+    const i = fcDeck[pos];
+    const card = FORM_JOBS[i];
+    app.innerHTML = "";
+    app.appendChild(el("button", { class: "back-link", onclick: () => (location.hash = "#/flashcards") }, "← Flashcards"));
+
+    const track = el("div", { class: "track" }, el("span"));
+    setTimeout(() => { track.firstChild.style.width = (pos / fcDeck.length) * 100 + "%"; }, 10);
+    app.appendChild(el("div", { class: "ex-wrap" },
+      el("div", { class: "ex-progress" },
+        el("span", {}, "Card " + (pos + 1) + " / " + fcDeck.length),
+        track,
+        el("span", { class: "pill" }, card.group))));
+
+    const face = el("div", { class: "fc-card" },
+      el("div", { class: "fc-prompt-label" }, "What is the JOB of this form?"),
+      el("div", { class: "fc-form" }, card.form));
+    const backArea = el("div");
+    face.appendChild(backArea);
+
+    let flipped = false;
+    const flipBtn = el("button", { class: "btn", style: "margin-top:1.2rem", onclick: () => {
+      if (flipped) return;
+      flipped = true;
+      flipBtn.style.display = "none";
+      backArea.appendChild(el("div", { class: "fc-answer" },
+        el("div", { class: "fc-job" }, card.job),
+        card.note ? el("div", { class: "fc-note" }, card.note) : null));
+      // self-rating drives the little spaced box
+      backArea.appendChild(el("div", { class: "rating" },
+        el("div", { class: "q" }, "Did you recall the job?"),
+        el("div", { class: "rate-btns" },
+          fcRate(i, "missed", "Missed", pos),
+          fcRate(i, "partial", "Close", pos),
+          fcRate(i, "nailed", "Nailed it", pos))));
+    } }, "Flip ↺");
+    face.appendChild(flipBtn);
+
+    app.querySelector(".ex-wrap").appendChild(face);
+  }
+
+  function fcRate(i, rating, label, pos) {
+    return el("button", { class: "rate-btn " + rating, onclick: () => {
+      const fc = loadFC();
+      const r = fc[i] || { box: 0 };
+      if (rating === "nailed") r.box = (r.box || 0) + 1;
+      else if (rating === "missed") r.box = 0;
+      else r.box = Math.max(1, r.box || 0);
+      fc[i] = r; saveFC(fc);
+      runFlashcards(pos + 1);
+    } }, label);
+  }
+
+  function finishFlashcards() {
+    app.innerHTML = "";
+    app.appendChild(el("div", { class: "empty" },
+      el("div", { class: "big" }, "🃏"),
+      el("h2", {}, "Deck complete"),
+      el("p", { class: "muted" }, "Cards you missed are queued to come back sooner next time. Run it daily until the whole core is automatic."),
+      el("div", { class: "btn-row", style: "justify-content:center" },
+        el("button", { class: "btn", onclick: () => (location.hash = "#/flashcards") }, "Go again"),
+        el("button", { class: "btn secondary", onclick: () => (location.hash = "#/home") }, "Dashboard"))));
   }
 
   /* ===========================================================================

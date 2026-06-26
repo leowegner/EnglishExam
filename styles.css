@@ -233,6 +233,22 @@ textarea.answer:focus { outline: none; border-color: var(--accent); }
 .field-input { width: 100%; background: var(--bg-soft); border: 1px solid var(--border); color: var(--text); padding: .6rem .8rem; border-radius: var(--radius-sm); font: inherit; }
 .field-input:focus { outline: none; border-color: var(--accent); }
 
+/* ===== Core Rules cheat-sheet ===== */
+.cs-list { display: grid; gap: .7rem; }
+.cs-item { background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 0 var(--radius) var(--radius) 0; padding: .9rem 1.1rem; }
+.cs-form { font-weight: 700; font-size: 1rem; margin-bottom: .25rem; }
+.cs-job { font-size: .94rem; line-height: 1.5; }
+.cs-note { font-size: .85rem; color: var(--text-dim); margin-top: .4rem; padding-top: .4rem; border-top: 1px solid var(--border); }
+
+/* ===== Flashcards ===== */
+.fc-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: clamp(1.4rem,4vw,2.2rem); text-align: center; box-shadow: var(--shadow); }
+.fc-prompt-label { font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); margin-bottom: .8rem; }
+.fc-form { font-size: 1.3rem; font-weight: 700; font-family: var(--serif); line-height: 1.4; }
+.fc-answer { margin-top: 1.4rem; border-top: 1px dashed var(--border); padding-top: 1.3rem; animation: fade .2s ease; }
+.fc-job { font-size: 1.05rem; line-height: 1.55; color: var(--green); font-weight: 500; }
+.fc-note { font-size: .9rem; color: var(--text-dim); margin-top: .8rem; line-height: 1.5; }
+.fc-card .rating { text-align: left; }
+
 /* ===== Method hints (teach the skeleton, no spoilers) ===== */
 .hints-wrap { margin-top: .9rem; }
 .hints-toggle { background: none; border: 1px dashed var(--border); color: var(--text-dim); padding: .55rem .9rem; border-radius: var(--radius-sm); font: inherit; font-size: .9rem; cursor: pointer; transition: all .12s; }
